@@ -101,10 +101,11 @@ struct xtrxll_ops {
 						 const void* buff, unsigned buf_szs, xtrxll_mode_t mode);
 	int (*repeat_tx_start)(struct xtrxll_base_dev* dev, int chan, int start);
 
-
 	// Sensor wrapper with wait functions
 	int (*get_sensor)(struct xtrxll_base_dev* dev, unsigned sensorno, int* outval);
 	int (*set_param)(struct xtrxll_base_dev* dev, unsigned paramno, uintptr_t inval);
+
+	int (*get_fd)(struct xtrxll_base_dev* dev);
 };
 
 /**

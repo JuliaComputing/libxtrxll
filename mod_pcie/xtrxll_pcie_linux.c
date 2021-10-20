@@ -795,6 +795,12 @@ static int xtrxllpciev0_set_param(struct xtrxll_base_dev* bdev,
 	return bdev->ctrlops->set_param(bdev->self, paramno, val);
 }
 
+static int xtrxllpciev0_get_fd(struct xtrxll_base_dev* bdev)
+{
+	struct xtrxll_pcie_dev* dev = (struct xtrxll_pcie_dev*)bdev;
+	return dev->fd;
+}
+
 static const char* get_proto_id(void) {
 	return "lpcie";
 }
@@ -835,6 +841,8 @@ const static struct xtrxll_ops mod_ops = {
 
 	.get_sensor = xtrxllpciev0_get_sensor,
 	.set_param = xtrxllpciev0_set_param,
+
+	.get_fd = xtrxllpciev0_get_fd,
 };
 
 const struct xtrxll_ops* xtrxllpciev0_init(unsigned abi_version)
