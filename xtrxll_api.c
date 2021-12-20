@@ -29,6 +29,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "xtrxll_log.h"
 #include "xtrxll_api.h"
@@ -384,3 +385,47 @@ int xtrxll_read_uart(struct xtrxll_dev* dev, unsigned uartno,
 										 written);
 }
 
+void xtrxll_dump_regs(struct xtrxll_dev* dev)
+{
+	int res;
+	uint16_t val, i;
+	uint32_t reg, result;
+
+	// read reg 0x0020, which contains the MAC at bits 0:1
+	reg = (0x0020 << 16) | 0xffff;
+	res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
+	assert(!res);
+	val = (uint16_t)result;
+
+	printf("[file_info]\n");
+	printf("type=lms7002m_minimal_config\n");
+	printf("version=1\n");
+
+	// set MAC to 0x01 for reading channel A
+	reg = (1<<31) | (0x0020 << 16) | (val & ~0x3) | 0x01;
+	res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
+	assert(!res);
+
+	printf("[lms7002_registers_a]\n");
+    for (i=0x20; i<0x0642; i++) {
+		reg = (i << 16) | 0xffff;
+		res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
+		assert(!res);
+		printf("0x%04x=0x%04x\n", i, (uint16_t)result);
+    }
+
+	// set MAC to 0x02 for reading channel B
+	reg = (1<<31) | (0x0020 << 16) | (val & ~0x3) | 0x02;
+	res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
+	assert(!res);
+
+	printf("[lms7002_registers_b]\n");
+    for (i=0x100; i<0x0642; i++) {
+		reg = (i << 16) | 0xffff;
+		res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
+		assert(!res);
+		printf("0x%04x=0x%04x\n", i, (uint16_t)result);
+    }
+
+	return;
+}

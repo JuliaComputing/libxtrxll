@@ -403,6 +403,8 @@ XTRXLL_API int xtrxll_repeat_tx_start(struct xtrxll_dev* dev, int chan, int star
 XTRXLL_API int xtrxll_read_uart(struct xtrxll_dev* dev, unsigned uartno,
 								uint8_t* out, unsigned maxsize, unsigned *written);
 
+XTRXLL_API void xtrxll_dump_regs(struct xtrxll_dev* dev);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

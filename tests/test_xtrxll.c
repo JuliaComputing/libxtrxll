@@ -690,6 +690,7 @@ int main(int argc, char** argv)
 	int ledtest = 0;
 	int synctest = 0;
 	int octotest = 0;
+	int dump_regs = 1;
 
 	pthread_t out_thread, in_thread;
 #ifdef __linux
@@ -1153,6 +1154,10 @@ int main(int argc, char** argv)
 		g_exit_flag = 1;
 		sem_post(&g_in_buff_available);
 		pthread_join(in_thread, NULL);
+	}
+
+	if (dump_regs) {
+		xtrxll_dump_regs(dev);
 	}
 
 	return 0;
