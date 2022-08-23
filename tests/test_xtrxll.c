@@ -1157,7 +1157,9 @@ int main(int argc, char** argv)
 	}
 
 	if (dump_regs) {
-		xtrxll_dump_regs(dev);
+		FILE* devnull = fopen("/dev/null", "w");
+		xtrxll_dump_regs(dev, devnull);
+		fclose(devnull);
 	}
 
 	return 0;

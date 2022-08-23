@@ -385,11 +385,16 @@ int xtrxll_read_uart(struct xtrxll_dev* dev, unsigned uartno,
 										 written);
 }
 
-void xtrxll_dump_regs(struct xtrxll_dev* dev)
+void xtrxll_dump_regs(struct xtrxll_dev* dev, FILE* stream)
 {
 	int res;
-	uint16_t val, i;
+	uint16_t val, i, j;
 	uint32_t reg, result;
+
+	// only print relevant registers (taken from Lime's MemorySectionAddresses)
+	size_t sections = 32;
+	uint16_t start_addresses[32] = {0x0020, 0x0081, 0x0082, 0x0084, 0x0085, 0x0086, 0x0092, 0x00A8, 0x00AD, 0x0100, 0x0105, 0x010C, 0x0115, 0x011C, 0x0125, 0x0200, 0x0240, 0x0280, 0x02C0, 0x0300, 0x0340, 0x0380, 0x0400, 0x0440, 0x0480, 0x04C0, 0x0500, 0x0540, 0x0580, 0x05C0, 0x0600, 0x0640};
+	uint16_t end_addresses[32] = {0x002F, 0x0081, 0x0082, 0x0084, 0x0085, 0x008C, 0x00A7, 0x00AC, 0x00AE, 0x0104, 0x010B, 0x0114, 0x011A, 0x0124, 0x0126, 0x020C, 0x0261, 0x02A7, 0x02E7, 0x0327, 0x0367, 0x03A7, 0x040F, 0x0461, 0x04A7, 0x04E7, 0x0527, 0x0567, 0x05A7, 0x05CC, 0x0606, 0x0641};
 
 	// read reg 0x0020, which contains the MAC at bits 0:1
 	reg = (0x0020 << 16) | 0xffff;
@@ -397,35 +402,50 @@ void xtrxll_dump_regs(struct xtrxll_dev* dev)
 	assert(!res);
 	val = (uint16_t)result;
 
-	printf("[file_info]\n");
-	printf("type=lms7002m_minimal_config\n");
-	printf("version=1\n");
+	fprintf(stream, "[file_info]\n");
+	fprintf(stream, "type=lms7002m_minimal_config\n");
+	fprintf(stream, "version=1\n");
 
 	// set MAC to 0x01 for reading channel A
 	reg = (1<<31) | (0x0020 << 16) | (val & ~0x3) | 0x01;
 	res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
 	assert(!res);
 
-	printf("[lms7002_registers_a]\n");
-    for (i=0x20; i<0x0642; i++) {
-		reg = (i << 16) | 0xffff;
-		res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
-		assert(!res);
-		printf("0x%04x=0x%04x\n", i, (uint16_t)result);
-    }
+	fprintf(stream, "[lms7002_registers_a]\n");
+	for (i=0; i<sections; i++) {
+		for (j=start_addresses[i]; j<=end_addresses[i]; j++) {
+			reg = (j << 16) | 0xffff;
+			res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
+			assert(!res);
+
+			if (i == 0x5C2)
+            	result &= 0xFF00;   //do not save calibration start triggers
+
+			fprintf(stream, "0x%04x=0x%04x\n", j, (uint16_t)result);
+		}
+	}
 
 	// set MAC to 0x02 for reading channel B
 	reg = (1<<31) | (0x0020 << 16) | (val & ~0x3) | 0x02;
 	res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
 	assert(!res);
 
-	printf("[lms7002_registers_b]\n");
-    for (i=0x100; i<0x0642; i++) {
-		reg = (i << 16) | 0xffff;
-		res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
-		assert(!res);
-		printf("0x%04x=0x%04x\n", i, (uint16_t)result);
-    }
+	fprintf(stream, "[lms7002_registers_b]\n");
+	for (i=0; i<sections; i++) {
+		for (j=start_addresses[i]; j<=end_addresses[i]; j++) {
+			if (j < 0x100 || j == 0x05C0)
+				continue;
+
+			reg = (j << 16) | 0xffff;
+			res = xtrxll_lms7_spi_bulk(dev, 1, &reg, &result, 1);
+			assert(!res);
+
+			if (i == 0x5C2)
+            	result &= 0xFF00;   //do not save calibration start triggers
+
+			fprintf(stream, "0x%04x=0x%04x\n", j, (uint16_t)result);
+		}
+	}
 
 	return;
 }

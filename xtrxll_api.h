@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -403,7 +404,7 @@ XTRXLL_API int xtrxll_repeat_tx_start(struct xtrxll_dev* dev, int chan, int star
 XTRXLL_API int xtrxll_read_uart(struct xtrxll_dev* dev, unsigned uartno,
 								uint8_t* out, unsigned maxsize, unsigned *written);
 
-XTRXLL_API void xtrxll_dump_regs(struct xtrxll_dev* dev);
+XTRXLL_API void xtrxll_dump_regs(struct xtrxll_dev* dev, FILE* stream);
 
 #ifdef __cplusplus
 } /* extern "C" */
